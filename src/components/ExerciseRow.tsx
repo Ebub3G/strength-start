@@ -35,13 +35,13 @@ export const ExerciseRow = ({ exercise, onUpdate }: ExerciseRowProps) => {
         : 'bg-card border-border hover:border-primary/30'
       }
     `}>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <h4 className={`font-medium ${exercise.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+            <h4 className={`font-medium text-sm sm:text-base ${exercise.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
               {exercise.name}
             </h4>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Target: {exercise.target}
             </p>
             
@@ -52,24 +52,24 @@ export const ExerciseRow = ({ exercise, onUpdate }: ExerciseRowProps) => {
                   placeholder="Actual reps performed (e.g., 2x8, 2x30s)"
                   value={tempReps}
                   onChange={(e) => setTempReps(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-xl text-sm"
                 />
                 <Textarea
                   placeholder="Notes (optional)"
                   value={tempNotes}
                   onChange={(e) => setTempNotes(e.target.value)}
-                  className="rounded-xl resize-none"
+                  className="rounded-xl resize-none text-sm"
                   rows={2}
                 />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleSave} className="rounded-xl">
+                  <Button size="sm" onClick={handleSave} className="rounded-xl flex-1 sm:flex-none">
                     Save
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline" 
                     onClick={() => setIsEditing(false)}
-                    className="rounded-xl"
+                    className="rounded-xl flex-1 sm:flex-none"
                   >
                     Cancel
                   </Button>
@@ -78,27 +78,27 @@ export const ExerciseRow = ({ exercise, onUpdate }: ExerciseRowProps) => {
             ) : (
               <div className="mt-2 space-y-1">
                 {exercise.actualReps && (
-                  <p className="text-sm">
+                  <p className="text-xs sm:text-sm">
                     <span className="text-muted-foreground">Actual: </span>
                     <span className="font-medium text-foreground">{exercise.actualReps}</span>
                   </p>
                 )}
                 {exercise.notes && (
-                  <p className="text-sm text-muted-foreground italic">"{exercise.notes}"</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground italic break-words">"{exercise.notes}"</p>
                 )}
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 self-start sm:self-center">
             {!isEditing && (
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => setIsEditing(true)}
-                className="rounded-xl"
+                className="rounded-xl p-2"
               >
-                <Edit3 className="w-3 h-3" />
+                <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="sr-only">Edit exercise</span>
               </Button>
             )}
@@ -107,9 +107,9 @@ export const ExerciseRow = ({ exercise, onUpdate }: ExerciseRowProps) => {
               size="sm"
               variant={exercise.completed ? "default" : "outline"}
               onClick={handleToggleComplete}
-              className={`rounded-xl ${exercise.completed ? 'bg-success hover:bg-success/90' : ''}`}
+              className={`rounded-xl p-2 ${exercise.completed ? 'bg-success hover:bg-success/90' : ''}`}
             >
-              <Check className="w-3 h-3" />
+              <Check className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="sr-only">
                 {exercise.completed ? 'Mark incomplete' : 'Mark complete'}
               </span>

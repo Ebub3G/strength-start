@@ -25,14 +25,14 @@ export const ProgressSummary = ({ week }: ProgressSummaryProps) => {
   };
 
   return (
-    <div className="bg-card rounded-2xl p-6 border border-border shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">{week.title}</h2>
-          <p className="text-sm text-muted-foreground">{week.description}</p>
+    <div className="bg-card rounded-2xl p-4 sm:p-6 border border-border shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4 mb-4">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold text-foreground">{week.title}</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">{week.description}</p>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-primary">
+        <div className="text-center sm:text-right flex-shrink-0">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">
             {week.completedSessions}/{week.totalSessions}
           </div>
           <p className="text-xs text-muted-foreground">Sessions Complete</p>
@@ -54,16 +54,16 @@ export const ProgressSummary = ({ week }: ProgressSummaryProps) => {
       </div>
 
       {/* Small Wins Section */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">Small Wins This Week</span>
+          <TrendingUp className="w-4 h-4 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm font-medium text-foreground">Small Wins This Week</span>
         </div>
-        <div className="space-y-2">
+        <div className="grid gap-2 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
           {getSmallWinSuggestion().map((suggestion, index) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <Target className="w-3 h-3 text-muted-foreground" />
-              <span className="text-muted-foreground">{suggestion}</span>
+            <div key={index} className="flex items-start gap-2 text-xs sm:text-sm">
+              <Target className="w-3 h-3 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <span className="text-muted-foreground leading-relaxed">{suggestion}</span>
             </div>
           ))}
         </div>

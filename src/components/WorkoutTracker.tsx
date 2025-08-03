@@ -170,20 +170,20 @@ export const WorkoutTracker = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">StrengthStart</h1>
-              <p className="text-sm text-muted-foreground">8-Week Beginner Workout Tracker</p>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">StrengthStart</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">8-Week Beginner Workout Tracker</p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl">
-                <Download className="w-4 h-4 mr-2" />
-                Export
+            <div className="flex gap-2 sm:gap-3">
+              <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl flex-1 sm:flex-none">
+                <Download className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={handleReset} className="rounded-xl">
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset
+              <Button variant="outline" size="sm" onClick={handleReset} className="rounded-xl flex-1 sm:flex-none">
+                <RotateCcw className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Reset</span>
               </Button>
             </div>
           </div>
@@ -198,7 +198,7 @@ export const WorkoutTracker = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <QuoteBanner />
         
         <ProgressSummary week={currentWeek} />
@@ -206,9 +206,9 @@ export const WorkoutTracker = () => {
         <TipsAccordion week={currentWeek.weekNumber} />
         
         {/* Sessions */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-foreground">Workout Sessions</h2>
-          <div className="grid gap-6">
+        <div className="space-y-4 sm:space-y-6">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Workout Sessions</h2>
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
             {currentWeek.days.map((day, dayIndex) => (
               <SessionCard
                 key={dayIndex}
@@ -223,10 +223,10 @@ export const WorkoutTracker = () => {
 
         {/* Phase Transition Message */}
         {userProgress.currentWeek === 4 && currentWeek.completedSessions === currentWeek.totalSessions && (
-          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-6 border border-purple-light/50">
+          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50 lg:col-span-2 xl:col-span-3">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">🎉 Ready for Phase 2!</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">🎉 Ready for Phase 2!</h3>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Congratulations on completing the Foundation Phase! You've built a solid habit and improved your form. 
                 Phase 2 will increase frequency to 4 sessions per week with slightly more challenging exercises.
               </p>
@@ -236,14 +236,14 @@ export const WorkoutTracker = () => {
 
         {/* Graduation Message */}
         {userProgress.currentWeek === 8 && currentWeek.completedSessions === currentWeek.totalSessions && (
-          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-6 border border-purple-light/50">
+          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50 lg:col-span-2 xl:col-span-3">
             <div className="text-center">
-              <h3 className="text-lg font-semibold text-foreground mb-2">🏆 Program Complete!</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">🏆 Program Complete!</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">
                 Amazing work completing the 8-week program! You've built strength, endurance, and most importantly, 
                 a consistent exercise habit.
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 <strong>Next Steps:</strong> Consider progressing to a 4-5 day split with bodyweight progressions like 
                 regular push-ups, split squats, and longer core holds. You're ready for the next level!
               </p>
