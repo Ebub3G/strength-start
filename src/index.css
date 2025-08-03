@@ -8,29 +8,44 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 250 100% 99%;
+    --foreground: 240 15% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 15% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 15% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 250 100% 97%;
+    --secondary-foreground: 262 83% 40%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 250 100% 96%;
+    --muted-foreground: 240 10% 55%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 262 50% 95%;
+    --accent-foreground: 262 83% 40%;
+
+    --success: 142 69% 58%;
+    --success-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+
+    /* Custom design tokens */
+    --purple-soft: 262 50% 95%;
+    --purple-light: 262 83% 85%;
+    --purple-medium: 262 83% 58%;
+    --purple-dark: 262 83% 40%;
+    
+    --gradient-purple: linear-gradient(135deg, hsl(var(--purple-medium)), hsl(var(--purple-dark)));
+    --shadow-soft: 0 4px 20px -4px hsl(var(--purple-medium) / 0.15);
+    --shadow-medium: 0 8px 30px -8px hsl(var(--purple-medium) / 0.25);
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
