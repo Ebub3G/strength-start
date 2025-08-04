@@ -41,9 +41,10 @@ export const ExerciseRow = ({ exercise, onUpdate }: ExerciseRowProps) => {
             <h4 className={`font-medium text-sm sm:text-base ${exercise.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
               {exercise.name}
             </h4>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Target: {exercise.target}
-            </p>
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1 space-y-1">
+              <p>Target: {exercise.target}</p>
+              <p>Rest: {exercise.rest}</p>
+            </div>
             
             {/* Actual Reps/Notes Section */}
             {isEditing ? (

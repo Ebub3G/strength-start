@@ -1,62 +1,69 @@
 import { useState, useEffect } from 'react';
 import { Download, RotateCcw } from 'lucide-react';
 import { Button } from './ui/button';
-import { WeekData, UserProgress, Exercise } from '../types/workout';
-import { generateWorkoutPlan } from '../data/workoutPlan';
-import { saveWorkoutData, loadWorkoutData, saveUserProgress, loadUserProgress } from '../utils/storage';
+import { WeekData, UserProgress } from '../types/workout';
+import { workoutPlan } from '../data/workoutPlan';
+import { saveUserProgress, loadUserProgress } from '../utils/storage';
 import { WeekSelector } from './WeekSelector';
 import { ProgressSummary } from './ProgressSummary';
-import { SessionCard } from './SessionCard';
+import { DayCard } from './DayCard';
 import { TipsAccordion } from './TipsAccordion';
 import { QuoteBanner } from './QuoteBanner';
 import { useToast } from '../hooks/use-toast';
 
 export const WorkoutTracker = () => {
-  const [weeks, setWeeks] = useState<WeekData[]>([]);
   const [userProgress, setUserProgress] = useState<UserProgress>({
     currentWeek: 1,
-    completedWeeks: [],
-    smallWins: [],
+    weeks: {},
     lastActiveDate: new Date().toISOString()
   });
   const { toast } = useToast();
 
   // Initialize data
   useEffect(() => {
-    const savedWeeks = loadWorkoutData();
     const savedProgress = loadUserProgress();
-
-    if (savedWeeks && savedProgress) {
-      setWeeks(savedWeeks);
+    if (savedProgress) {
       setUserProgress(savedProgress);
-    } else {
-      const initialWeeks = generateWorkoutPlan();
-      setWeeks(initialWeeks);
-      saveWorkoutData(initialWeeks);
-      saveUserProgress(userProgress);
     }
   }, []);
 
   // Auto-save on changes
   useEffect(() => {
-    if (weeks.length > 0) {
-      saveWorkoutData(weeks);
-    }
-  }, [weeks]);
-
-  useEffect(() => {
     saveUserProgress(userProgress);
   }, [userProgress]);
 
-  const currentWeek = weeks.find(w => w.weekNumber === userProgress.currentWeek);
+  const currentWeek = workoutPlan.find(w => w.weekNumber === userProgress.currentWeek);
 
   const isWeekUnlocked = (weekNumber: number): boolean => {
     if (weekNumber === 1) return true;
     if (weekNumber <= userProgress.currentWeek) return true;
     
-    // Unlock next week if current week is complete
-    const prevWeek = weeks.find(w => w.weekNumber === weekNumber - 1);
-    return prevWeek ? prevWeek.completedSessions === prevWeek.totalSessions : false;
+    // Unlock next week if previous week is complete
+    const prevWeek = workoutPlan.find(w => w.weekNumber === weekNumber - 1);
+    if (!prevWeek) return false;
+    
+    // Check if all exercises in previous week are completed
+    const prevWeekProgress = userProgress.weeks[String(weekNumber - 1)];
+    if (!prevWeekProgress) return false;
+    
+    let totalExercises = 0;
+    let completedExercises = 0;
+    
+    prevWeek.days.forEach(day => {
+      ['morning', 'evening', 'single'].forEach(sessionType => {
+        const session = day[sessionType as keyof typeof day] as any;
+        if (session?.exercises) {
+          totalExercises += session.exercises.length;
+          session.exercises.forEach((exercise: any) => {
+            if (prevWeekProgress[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+              completedExercises++;
+            }
+          });
+        }
+      });
+    });
+    
+    return completedExercises === totalExercises && totalExercises > 0;
   };
 
   const handleWeekChange = (weekNumber: number) => {
@@ -65,64 +72,96 @@ export const WorkoutTracker = () => {
     }
   };
 
-  const handleUpdateExercise = (dayIndex: number, exerciseIndex: number, updates: Partial<Exercise>) => {
-    setWeeks(prevWeeks => 
-      prevWeeks.map(week => {
-        if (week.weekNumber === userProgress.currentWeek) {
-          const updatedDays = [...week.days];
-          updatedDays[dayIndex] = {
-            ...updatedDays[dayIndex],
-            exercises: updatedDays[dayIndex].exercises.map((ex, idx) => 
-              idx === exerciseIndex ? { ...ex, ...updates } : ex
-            )
-          };
-          
-          // Update session completion
-          const sessionComplete = updatedDays[dayIndex].exercises.every(ex => ex.completed);
-          updatedDays[dayIndex].completed = sessionComplete;
-          
-          // Update week completion count
-          const completedSessions = updatedDays.filter(day => day.completed).length;
-          
-          const updatedWeek = {
-            ...week,
-            days: updatedDays,
-            completedSessions
-          };
-
-          // Check if week is complete
-          if (completedSessions === week.totalSessions && !userProgress.completedWeeks.includes(week.weekNumber)) {
-            setUserProgress(prev => ({
-              ...prev,
-              completedWeeks: [...prev.completedWeeks, week.weekNumber],
-              smallWins: [...prev.smallWins, `Completed Week ${week.weekNumber}!`]
-            }));
-            
-            toast({
-              title: "Week Complete! 🎉",
-              description: `Amazing work finishing Week ${week.weekNumber}! You're getting stronger every day.`,
+  const handleUpdateExercise = (dayIndex: number, session: string, exerciseIndex: number, updates: { actualReps?: string; notes?: string; completed?: boolean }) => {
+    if (!currentWeek) return;
+    
+    const dayName = currentWeek.days[dayIndex].name;
+    const sessionData = currentWeek.days[dayIndex][session as keyof typeof currentWeek.days[0]] as any;
+    if (!sessionData?.exercises) return;
+    
+    const exerciseName = sessionData.exercises[exerciseIndex].name;
+    
+    setUserProgress(prev => {
+      const updatedProgress = { ...prev };
+      
+      if (!updatedProgress.weeks[String(userProgress.currentWeek)]) {
+        updatedProgress.weeks[String(userProgress.currentWeek)] = {};
+      }
+      
+      if (!updatedProgress.weeks[String(userProgress.currentWeek)][dayName]) {
+        updatedProgress.weeks[String(userProgress.currentWeek)][dayName] = {};
+      }
+      
+      if (!updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session]) {
+        updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session] = {};
+      }
+      
+      const existingData = updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session][exerciseName] || {};
+      
+      updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session][exerciseName] = {
+        ...existingData,
+        ...updates
+      };
+      
+      updatedProgress.lastActiveDate = new Date().toISOString();
+      
+      // Check if week is complete
+      let totalExercises = 0;
+      let completedExercises = 0;
+      
+      currentWeek.days.forEach(day => {
+        ['morning', 'evening', 'single'].forEach(sessionType => {
+          const sessionObj = day[sessionType as keyof typeof day] as any;
+          if (sessionObj?.exercises) {
+            totalExercises += sessionObj.exercises.length;
+            sessionObj.exercises.forEach((exercise: any) => {
+              if (updatedProgress.weeks[String(userProgress.currentWeek)]?.[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+                completedExercises++;
+              }
             });
           }
-
-          return updatedWeek;
+        });
+      });
+      
+      if (completedExercises === totalExercises && totalExercises > 0) {
+        const prevWeekProgress = userProgress.weeks[String(userProgress.currentWeek)];
+        let prevCompletedCount = 0;
+        
+        if (prevWeekProgress) {
+          currentWeek.days.forEach(day => {
+            ['morning', 'evening', 'single'].forEach(sessionType => {
+              const sessionObj = day[sessionType as keyof typeof day] as any;
+              if (sessionObj?.exercises) {
+                sessionObj.exercises.forEach((exercise: any) => {
+                  if (prevWeekProgress[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+                    prevCompletedCount++;
+                  }
+                });
+              }
+            });
+          });
         }
-        return week;
-      })
-    );
+        
+        if (prevCompletedCount < totalExercises) {
+          toast({
+            title: "Week Complete! 🎉",
+            description: `Amazing work finishing Week ${userProgress.currentWeek}! You're getting stronger every day.`,
+          });
+        }
+      }
+      
+      return updatedProgress;
+    });
   };
 
   const handleReset = () => {
-    const freshWeeks = generateWorkoutPlan();
     const freshProgress: UserProgress = {
       currentWeek: 1,
-      completedWeeks: [],
-      smallWins: [],
+      weeks: {},
       lastActiveDate: new Date().toISOString()
     };
     
-    setWeeks(freshWeeks);
     setUserProgress(freshProgress);
-    saveWorkoutData(freshWeeks);
     saveUserProgress(freshProgress);
     
     toast({
@@ -174,7 +213,7 @@ export const WorkoutTracker = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4">
             <div className="flex-1">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">StrengthStart</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">8-Week Beginner Workout Tracker</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">6-Week Progressive Muscle-Building Tracker</p>
             </div>
             <div className="flex gap-2 sm:gap-3">
               <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl flex-1 sm:flex-none">
@@ -188,12 +227,12 @@ export const WorkoutTracker = () => {
             </div>
           </div>
           
-          <WeekSelector
-            currentWeek={userProgress.currentWeek}
-            totalWeeks={8}
-            onWeekChange={handleWeekChange}
-            isWeekUnlocked={isWeekUnlocked}
-          />
+            <WeekSelector
+              currentWeek={userProgress.currentWeek}
+              totalWeeks={6}
+              onWeekChange={handleWeekChange}
+              isWeekUnlocked={isWeekUnlocked}
+            />
         </div>
       </div>
 
@@ -201,51 +240,91 @@ export const WorkoutTracker = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <QuoteBanner />
         
-        <ProgressSummary week={currentWeek} />
+        <ProgressSummary week={currentWeek} userProgress={userProgress} />
         
         <TipsAccordion week={currentWeek.weekNumber} />
         
-        {/* Sessions */}
+        {/* Days */}
         <div className="space-y-4 sm:space-y-6">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Workout Sessions</h2>
-          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Weekly Schedule</h2>
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
             {currentWeek.days.map((day, dayIndex) => (
-              <SessionCard
+              <DayCard
                 key={dayIndex}
                 day={day}
-                onUpdateExercise={(exerciseIndex, updates) => 
-                  handleUpdateExercise(dayIndex, exerciseIndex, updates)
+                weekNumber={userProgress.currentWeek}
+                onUpdateExercise={(session, exerciseIndex, updates) => 
+                  handleUpdateExercise(dayIndex, session, exerciseIndex, updates)
                 }
+                userProgress={userProgress}
               />
             ))}
           </div>
         </div>
 
         {/* Phase Transition Message */}
-        {userProgress.currentWeek === 4 && currentWeek.completedSessions === currentWeek.totalSessions && (
-          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50 lg:col-span-2 xl:col-span-3">
+        {userProgress.currentWeek === 3 && (() => {
+          let totalExercises = 0;
+          let completedExercises = 0;
+          
+          currentWeek?.days.forEach(day => {
+            ['morning', 'evening', 'single'].forEach(sessionType => {
+              const session = day[sessionType as keyof typeof day] as any;
+              if (session?.exercises) {
+                totalExercises += session.exercises.length;
+                session.exercises.forEach((exercise: any) => {
+                  if (userProgress.weeks[String(userProgress.currentWeek)]?.[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+                    completedExercises++;
+                  }
+                });
+              }
+            });
+          });
+          
+          return completedExercises === totalExercises && totalExercises > 0;
+        })() && (
+          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50">
             <div className="text-center">
               <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">🎉 Ready for Phase 2!</h3>
               <p className="text-sm sm:text-base text-muted-foreground">
                 Congratulations on completing the Foundation Phase! You've built a solid habit and improved your form. 
-                Phase 2 will increase frequency to 4 sessions per week with slightly more challenging exercises.
+                Phase 2 will increase intensity with more challenging exercises and finisher sets.
               </p>
             </div>
           </div>
         )}
 
         {/* Graduation Message */}
-        {userProgress.currentWeek === 8 && currentWeek.completedSessions === currentWeek.totalSessions && (
-          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50 lg:col-span-2 xl:col-span-3">
+        {userProgress.currentWeek === 6 && (() => {
+          let totalExercises = 0;
+          let completedExercises = 0;
+          
+          currentWeek?.days.forEach(day => {
+            ['morning', 'evening', 'single'].forEach(sessionType => {
+              const session = day[sessionType as keyof typeof day] as any;
+              if (session?.exercises) {
+                totalExercises += session.exercises.length;
+                session.exercises.forEach((exercise: any) => {
+                  if (userProgress.weeks[String(userProgress.currentWeek)]?.[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+                    completedExercises++;
+                  }
+                });
+              }
+            });
+          });
+          
+          return completedExercises === totalExercises && totalExercises > 0;
+        })() && (
+          <div className="bg-gradient-to-r from-purple-soft to-purple-light rounded-2xl p-4 sm:p-6 border border-purple-light/50">
             <div className="text-center">
               <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">🏆 Program Complete!</h3>
               <p className="text-sm sm:text-base text-muted-foreground mb-4">
-                Amazing work completing the 8-week program! You've built strength, endurance, and most importantly, 
-                a consistent exercise habit.
+                Amazing work completing the 6-week progressive muscle-building program! You've built strength, endurance, and most importantly, 
+                a consistent exercise habit with proper form.
               </p>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                <strong>Next Steps:</strong> Consider progressing to a 4-5 day split with bodyweight progressions like 
-                regular push-ups, split squats, and longer core holds. You're ready for the next level!
+                <strong>Next Steps:</strong> Consider progressing to intermediate bodyweight routines with advanced variations like 
+                archer push-ups, pistol squats, and weighted exercises. You're ready for the next level!
               </p>
             </div>
           </div>
