@@ -99,6 +99,9 @@ export const WorkoutTracker = () => {
       const existingData = updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session][exerciseName] || {};
       
       updatedProgress.weeks[String(userProgress.currentWeek)][dayName][session][exerciseName] = {
+        completed: false,
+        actualReps: '',
+        notes: '',
         ...existingData,
         ...updates
       };

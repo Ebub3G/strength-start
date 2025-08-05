@@ -1,12 +1,36 @@
 import { CheckCircle, Target, TrendingUp } from 'lucide-react';
-import { WeekData } from '../types/workout';
+import { WeekData, UserProgress } from '../types/workout';
 
 interface ProgressSummaryProps {
   week: WeekData;
+  userProgress: UserProgress;
 }
 
-export const ProgressSummary = ({ week }: ProgressSummaryProps) => {
-  const progressPercentage = (week.completedSessions / week.totalSessions) * 100;
+export const ProgressSummary = ({ week, userProgress }: ProgressSummaryProps) => {
+  // Calculate completed sessions from user progress
+  const getSessionProgress = () => {
+    let totalExercises = 0;
+    let completedExercises = 0;
+    
+    week.days.forEach(day => {
+      ['morning', 'evening', 'single'].forEach(sessionType => {
+        const session = day[sessionType as keyof typeof day] as any;
+        if (session?.exercises) {
+          totalExercises += session.exercises.length;
+          session.exercises.forEach((exercise: any) => {
+            if (userProgress.weeks[String(week.weekNumber)]?.[day.name]?.[sessionType]?.[exercise.name]?.completed) {
+              completedExercises++;
+            }
+          });
+        }
+      });
+    });
+    
+    return { completed: completedExercises, total: totalExercises };
+  };
+  
+  const sessionProgress = getSessionProgress();
+  const progressPercentage = sessionProgress.total > 0 ? (sessionProgress.completed / sessionProgress.total) * 100 : 0;
   
   const getSmallWinSuggestion = () => {
     if (week.phase === 1) {
@@ -33,9 +57,9 @@ export const ProgressSummary = ({ week }: ProgressSummaryProps) => {
         </div>
         <div className="text-center sm:text-right flex-shrink-0">
           <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary">
-            {week.completedSessions}/{week.totalSessions}
+            {sessionProgress.completed}/{sessionProgress.total}
           </div>
-          <p className="text-xs text-muted-foreground">Sessions Complete</p>
+          <p className="text-xs text-muted-foreground">Exercises Complete</p>
         </div>
       </div>
 
